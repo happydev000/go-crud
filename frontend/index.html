@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Book Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1 class="title">📚 Book Manager</h1>
+
+<!-- Add Form -->
+<div class="add-card fade-in">
+    <h2>Add Book</h2>
+    <input id="title" placeholder="Title">
+    <input id="author" placeholder="Author">
+    <button onclick="addBook()">Add Book</button>
+</div>
+
+<h2 class="subtitle">Books</h2>
+
+<div id="books" class="books-grid"></div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal hidden">
+    <div class="modal-content">
+        <h2>Edit Book</h2>
+        <input id="editTitle">
+        <input id="editAuthor">
+        <button class="save-btn" onclick="saveEdit()">Save</button>
+        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+<script>
+const API_URL = "http://localhost:8080/books";
+let editingID = null;
+
+// Fetch all books
+async function loadBooks() {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+
+    const container = document.getElementById("books");
+    container.innerHTML = "";
+
+    data.forEach(book => {
+        const card = document.createElement("div");
+        card.className = "book-card fade-in";
+
+        card.innerHTML = `
+            <div class="book-info">
+                <p><span>ID:</span> ${book.id}</p>
+                <p><span>Title:</span> ${book.title}</p>
+                <p><span>Author:</span> ${book.author}</p>
+            </div>
+
+            <div class="card-actions">
+                <button class="edit-btn" onclick="openEdit(${book.id}, '${book.title}', '${book.author}')">Edit</button>
+                <button class="delete-btn" onclick="deleteBook(${book.id})">Delete</button>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+// Add new book
+async function addBook() {
+    const title = document.getElementById("title").value.trim();
+    const author = document.getElementById("author").value.trim();
+
+    if (!title || !author) {
+        alert("Please fill in both fields!");
+        return;
+    }
+
+    await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, author })
+    });
+
+    document.getElementById("title").value = "";
+    document.getElementById("author").value = "";
+
+    loadBooks();
+}
+
+// Delete book
+async function deleteBook(id) {
+    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    loadBooks();
+}
+
+// Open Edit Modal
+function openEdit(id, title, author) {
+    editingID = id;
+
+    document.getElementById("editTitle").value = title;
+    document.getElementById("editAuthor").value = author;
+
+    document.getElementById("editModal").classList.remove("hidden");
+}
+
+// Close Modal
+function closeModal() {
+    document.getElementById("editModal").classList.add("hidden");
+}
+
+// Save Edit
+async function saveEdit() {
+    const title = document.getElementById("editTitle").value.trim();
+    const author = document.getElementById("editAuthor").value.trim();
+
+    await fetch(`${API_URL}/${editingID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, author })
+    });
+
+    closeModal();
+    loadBooks();
+}
+
+loadBooks();
+</script>
+
+</body>
+</html>

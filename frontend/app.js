@@ -13,7 +13,7 @@ async function loadBooks() {
 
         card.innerHTML = `
             <p class="book-title">${book.id}. ${book.title}</p>
-            <p class="book-author">by ${book.author}</p>
+            <p class="book-author">by ${book.author} </p>
 
             <button class="btn-small btn-edit" onclick="editBook(${book.id}, '${book.title}', '${book.author}')">
                 Edit
